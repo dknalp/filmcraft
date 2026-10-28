@@ -615,7 +615,9 @@ fn footer(app: &mut FilmcraftApp, ui: &mut egui::Ui, bar: Rect, v: &View, action
         egui::Popup::menu(&resp).show(|ui| sort_icons_menu(app, ui, pre, actions));
     }
     let mut rx = bar.max.x - 6.0;
-    let sel_empty = app.session.state.project_selection.is_empty();
+    // "Clear" is enabled when either items are selected or a non-root bin is selected (#issue4).
+    let has_clearable = !app.session.state.project_selection.is_empty()
+        || app.ui.project_panel.selected_bin.is_some();
     for (icon, id, tip) in [
         (Icon::Trash, "project.delete", tl!("Clear (Delete)")),
         (Icon::NewItem, "new-item", tl!("New Item")),
@@ -625,7 +627,7 @@ fn footer(app: &mut FilmcraftApp, ui: &mut egui::Ui, bar: Rect, v: &View, action
     ] {
         // Clear and Automate only make sense when something is selected (#2129 companion).
         let needs_selection = matches!(id, "project.delete" | "clip.automateToSequence");
-        let enabled = !(needs_selection && sel_empty);
+        let enabled = !(needs_selection && !has_clearable);
         let r = Rect::from_min_size(pos2(rx - 24.0, bar.min.y + 5.0), vec2(24.0, 22.0));
         let resp = ui.interact(r, egui::Id::unique((pre, "pb", id)), Sense::click()).on_hover_text(tip);
         app.auto.add(&format!("{pre}.button.{id}"), r, tip);

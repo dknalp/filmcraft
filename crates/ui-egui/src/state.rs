@@ -89,6 +89,29 @@ impl Tool {
             Tool::VerticalType => "",
         }
     }
+
+    /// The engine command id used to activate this tool (matches shortcut_presets table).
+    /// Used to look up the *current* (possibly user-customized) binding (#issue8).
+    pub fn command_id(self) -> &'static str {
+        match self {
+            Tool::Selection => "tool.selection",
+            Tool::TrackSelectForward => "tool.trackSelectForward",
+            Tool::TrackSelectBackward => "tool.trackSelectBackward",
+            Tool::Ripple => "tool.ripple",
+            Tool::Rolling => "tool.rolling",
+            Tool::RateStretch => "tool.rateStretch",
+            Tool::Remix => "",
+            Tool::Razor => "tool.razor",
+            Tool::Slip => "tool.slip",
+            Tool::Slide => "tool.slide",
+            Tool::Pen => "tool.pen",
+            Tool::Rectangle | Tool::Ellipse => "",
+            Tool::Hand => "tool.hand",
+            Tool::Zoom => "tool.zoom",
+            Tool::Type => "tool.type",
+            Tool::VerticalType => "",
+        }
+    }
     pub fn icon(self) -> Icon {
         match self {
             Tool::Selection => Icon::Selection,
