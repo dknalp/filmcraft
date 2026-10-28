@@ -1554,7 +1554,11 @@ fn build() -> Vec<CommandSpec> {
             |s, p| crate::aaf_omf::export_omf(s, p)
         ),
         cmd!("file.importAaf", "Import AAF…", [], None, r#"{"path":str}"#, always, |s, p| crate::aaf_omf::import_document(s, p, "file.importAaf")),
-        cmd!("file.save", "Save", ["File"], Some("Cmd+S"), r#"{"path":str?}"#, always, |s, p| {
+        cmd!("file.save", "Save", ["File"], Some("Cmd+S"), r#"{"path":str?,"workspaceLayout":any?}"#, always, |s, p| {
+            // Accept an optional dock/panel layout to embed in the project (#2258).
+            if let Some(wl) = p.get("workspaceLayout").cloned().filter(|v| !v.is_null()) {
+                std::sync::Arc::make_mut(&mut s.project).workspace_layout = Some(wl);
+            }
             let path = str_p(p, "path").map(str::to_string).or_else(|| s.path.clone()).ok_or_else(|| bad("file.save", "no path (use Save As)"))?;
             write_project(s, &path, true)
         }),
