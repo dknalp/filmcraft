@@ -231,6 +231,10 @@ pub struct TimelineView {
     /// (`volume`, `pan`, `mute`, `send.<i>.level`, `fx.<slot>.<param>`).
     #[serde(default)]
     pub track_lanes: std::collections::BTreeMap<u64, String>,
+    /// Combined A/V lanes: each video track is shown alongside its linked audio
+    /// track in a single row (#2584). Default off.
+    #[serde(default)]
+    pub combined_av_lanes: bool,
 }
 
 impl TimelineView {
@@ -261,6 +265,7 @@ impl Default for TimelineView {
             seen_playhead: None,
             fit_empty: None,
             track_lanes: Default::default(),
+            combined_av_lanes: false,
         }
     }
 }

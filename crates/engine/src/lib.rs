@@ -412,6 +412,9 @@ pub struct EditorState {
     /// Caption style clipboard for Copy/Paste Style (#2330).
     #[serde(skip)]
     pub caption_style_clipboard: Option<filmcraft_project::CaptionStyle>,
+    /// Transition clipboard for Copy/Paste Transition (#2350).
+    #[serde(skip)]
+    pub transition_clipboard: Option<filmcraft_project::Transition>,
 }
 
 /// Events for frontends (drained each frame).
