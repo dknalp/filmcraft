@@ -444,6 +444,17 @@ fn graphics(app: &mut FilmcraftApp, ui: &mut egui::Ui, rect: Rect) {
                 });
             });
             app.auto.add(&format!("text.graphics.{key}.row"), fr.response.rect, &g.text);
+            // Right-click context menu with Duplicate (#2265).
+            fr.response.context_menu(|ui| {
+                if ui.button(tl!("Duplicate")).clicked() {
+                    actions.push(("graphics.duplicateLayer".into(), serde_json::json!({"clip": g.clip.0, "layer": g.layer})));
+                    ui.close();
+                }
+                if ui.button(tl!("Delete Layer")).clicked() {
+                    actions.push(("graphics.deleteLayer".into(), serde_json::json!({"clip": g.clip.0, "layer": g.layer})));
+                    ui.close();
+                }
+            });
             ui.add_space(2.0);
         }
         if shown == 0 {
@@ -665,8 +676,17 @@ fn style_strip(app: &mut FilmcraftApp, ui: &mut egui::Ui, r: Rect, track_idx: us
             if !filmcraft_text::fonts::system_scanned() {
                 filmcraft_text::fonts::scan_system();
             }
+            // Font search filter (#1997): persist filter string via egui temp storage.
+            let filter_id = egui::Id::unique(("caption-font-filter", tr.id.0));
+            let mut filter = ui.data(|d| d.get_temp::<String>(filter_id).unwrap_or_default());
+            let filter_resp = ui.add(egui::TextEdit::singleline(&mut filter).hint_text(tl!("Search fonts…")).desired_width(f32::INFINITY));
+            app.auto.add("text.captions.style.font.search", filter_resp.rect, "Search fonts");
+            if filter_resp.changed() {
+                ui.data_mut(|d| d.insert_temp(filter_id, filter.clone()));
+            }
+            let low = filter.to_lowercase();
             // names starting with '.' are macOS-private system faces (UI/fallback fonts, some without a space glyph)
-            for (f, _) in filmcraft_text::families().into_iter().filter(|(f, _)| !f.starts_with('.')) {
+            for (f, _) in filmcraft_text::families().into_iter().filter(|(f, _)| !f.starts_with('.') && (low.is_empty() || f.to_lowercase().contains(&low))) {
                 let resp = ui.selectable_label(f.eq_ignore_ascii_case(&st.font), &f);
                 // An edge row may be only partly visible; automation must click its visible portion.
                 let visible = resp.rect.intersect(ui.clip_rect());
@@ -674,6 +694,7 @@ fn style_strip(app: &mut FilmcraftApp, ui: &mut egui::Ui, r: Rect, track_idx: us
                     app.auto.add(&format!("text.captions.style.font.option.{f}"), visible, &f);
                 }
                 if resp.clicked() {
+                    ui.data_mut(|d| d.remove::<String>(filter_id));
                     actions.push(("captions.setStyle".into(), json!({"track": tr.id.0, "font": f})));
                 }
             }
